@@ -1,7 +1,10 @@
 import React, { useEffect, useState } from 'react'
 import { useSelector } from 'react-redux'
 import { motion } from 'framer-motion'
-import { MdBookmark } from 'react-icons/md'
+import { MdDelete, MdDeleteSweep, MdEdit } from 'react-icons/md'
+import { useNavigate } from 'react-router-dom'
+import { db } from '../config/firebase.config'
+import { deleteDoc, doc } from 'firebase/firestore'
 
 // gets the projects from the state first
 // That means we need to push the project to the state first in redux store
@@ -17,7 +20,7 @@ const Projects = () => {
     state.searchTerm?.searchTerm?state.searchTerm?.searchTerm:''
   )
 
-  console.log(searchTerm);
+  // console.log(searchTerm);
 
   // filtering projects
   const [filtered, setfiltered] = useState(null)
@@ -61,9 +64,29 @@ const Projects = () => {
 }
 
 // project card
-const ProjectCard = ({project,index}) => {
+const ProjectCard = ({project,index,onDelete}) => {
+
+  // console.log(project.id)
+
+  const navigate = useNavigate();
+
+  const handleEditClick = () => {
+    navigate(`/newproject/${project.id}`);
+  };
+
+  const handleDeleteClick = async () => {
+    try {
+      await deleteDoc(doc(db, 'Projects', project.id));
+      onDelete(project.id);  // Notify parent component about deletion
+    } catch (error) {
+      console.error("Error deleting document: ", error);
+    }
+  };
+
+
+
   const userEmailFirstChar =project?.user[0]?.email ? project?.user[0].email.charAt(0) : project?.user[0].displayName.charAt(0)
-  console.log(project)
+  
   return(
     <motion.div key={index} 
     className=' w-full cursor-pointer md:w-[450px] h-[375px] bg-secondary rounded-md p-4 flex flex-col items-center justify-center gap-4'
@@ -116,12 +139,27 @@ const ProjectCard = ({project,index}) => {
         </div>
 
         {/* collection */}
+
+        {/* edit button */}
+        <motion.div className=' cursor-pointer ml-auto'
+        whileTap={{scale: 0.9}}
+        onClick={handleEditClick}
+        >
+          {/* saving option
+        <MdBookmark className=' text-primaryText text-3xl'/> */}
+          <MdEdit className='text-primaryText text-3xl' />
+        </motion.div>
+
         <motion.div className=' cursor-pointer ml-auto'
         whileTap={{scale: 0.9}}
         >
-          {/* saving option */}
-        <MdBookmark className=' text-primaryText text-3xl'/>
+          {/* saving option
+        <MdBookmark className=' text-primaryText text-3xl'/> */}
+          <MdDelete className='text-primaryText text-3xl'
+          onClick={handleDeleteClick}
+           />
         </motion.div>
+
             </div>
     </motion.div>
   )

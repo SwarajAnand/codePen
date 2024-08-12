@@ -4,16 +4,21 @@ import { FcSettings } from "react-icons/fc";
 import SplitPane from "react-split-pane";
 import CodeMirror from "@uiw/react-codemirror";
 import { javascript } from "@codemirror/lang-javascript";
-import { Link } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import { Logo } from "../assets";
 import { AnimatePresence,motion } from "framer-motion";
 import { MdCheck, MdEdit } from "react-icons/md";
 import { useSelector } from "react-redux";
 import { Alert, UserProfileDetails } from "../components";
-import { doc, setDoc } from "firebase/firestore";
+import { doc, getDoc, setDoc } from "firebase/firestore";
 import { db } from "../config/firebase.config";
 
 const NewProject = () => {
+
+  // Access `id` from `useParams`
+  const { id } = useParams();
+  console.log(id);
+  
 
     // show alert that project is saved
     const [alert, setAlert] = useState(false)
@@ -31,6 +36,30 @@ const [title, setTitle] = useState('Untitled')
 
 // to get the user object from the redux store
 const user = useSelector((state)=> state.user.user)
+
+useEffect(() => {
+  if (id) {
+    const fetchProjectData = async () => {
+      try {
+        const projectDoc = await getDoc(doc(db, 'Projects', id));
+        if (projectDoc.exists()) {
+          const projectData = projectDoc.data();
+          setHtml(projectData.html);
+          setCss(projectData.css);
+          setJs(projectData.js);
+          setOutput(projectData.output);
+          setTitle(projectData.title);
+        } else {
+          console.log("No such document!");
+        }
+      } catch (error) {
+        console.error("Error fetching project data: ", error);
+      }
+    };
+
+    fetchProjectData();
+  }
+}, [id]);
 
   useEffect(() => {
     updateOutput();
@@ -62,9 +91,12 @@ If the document is successfully saved, it sets the alert state to true, indicati
 It uses setInterval to automatically set the alert state back to false after 2000 milliseconds (2 seconds), effectively hiding the alert message.*/ 
 
 const saveProgram = async() => {
-    const id = `${Date.now()}`
+    // const id = `${Date.now()}`
+    // const id = id || `${Date.now()}`
+    const uniqueId = id || Date.now().toString(); // Use Date.now() and convert it to string
+
     const _doc = {
-        id:id,
+        id:uniqueId,
         title:title,
         html:html,
         css:css,

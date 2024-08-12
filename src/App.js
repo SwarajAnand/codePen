@@ -88,6 +88,8 @@ const App = () => {
         <Route path='/home/*' element={<Home/>}/>
 
         {/* load newproject vomponent for the following route */}
+        <Route path="/newproject/:id" element={<NewProject/>}/>
+
         <Route path="/newproject" element={<NewProject/>}/>
 
         {/* navigate to home */}
